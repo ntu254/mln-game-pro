@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from 'react';
 
-type SoundType = 'hover' | 'click' | 'success' | 'error' | 'notification' | 'charge-start' | 'charge-loop' | 'charge-end';
+type SoundType = 'hover' | 'click' | 'success' | 'error' | 'notification' | 'charge-start' | 'charge-loop' | 'charge-end' | 'pop';
+
+// ... (interface update if needed, but SoundType covers it)
 
 interface SoundContextType {
   playSound: (type: SoundType) => void;
@@ -12,6 +14,9 @@ interface SoundContextType {
   isMuted: boolean;
   toggleMute: () => void;
 }
+
+
+
 
 const SoundContext = createContext<SoundContextType | undefined>(undefined);
 
@@ -108,11 +113,19 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       case 'notification':
         // Gentle bell
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
         osc.start(now);
         osc.stop(now + 0.5);
+        break;
+
+      case 'pop':
+        // Short high frequency pop
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
         break;
     }
   };
