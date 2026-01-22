@@ -120,11 +120,11 @@ const SelectionOverlay: React.FC<{
         setFeedback(option.feedback);
 
         if (option.isCorrect) {
-            playSound('correct');
+            playSound('success');
             setIsSuccess(true);
             setTimeout(onComplete, 2000);
         } else {
-            playSound('wrong');
+            playSound('error');
             setIsSuccess(false);
         }
     };
@@ -208,7 +208,7 @@ const SynthesisFilter: React.FC<{
             setItems(prev => prev.map(i => i.id === id ? { ...i, status: action } : i));
             setFeedback(null);
         } else {
-            playSound('wrong');
+            playSound('error');
             setFeedback(action === 'keep'
                 ? "Không thể mang đặc điểm tiêu cực này sang tương lai!"
                 : "Đừng bỏ phí những giá trị cốt lõi cần kế thừa!"

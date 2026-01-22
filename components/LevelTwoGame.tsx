@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSound } from './SoundContext';
 
 interface LevelTwoGameProps {
     onExit: () => void;
@@ -230,6 +231,14 @@ const LevelTwoGame: React.FC<LevelTwoGameProps> = ({ onExit }) => {
     const [startTime] = useState(Date.now());
     const [elapsedTime, setElapsedTime] = useState(0);
 
+    const { playSound, playBGM, stopBGM } = useSound();
+
+    // Start BGM
+    useEffect(() => {
+        playBGM('ambient');
+        return () => stopBGM();
+    }, [playBGM, stopBGM]);
+
     // Shuffle scenarios on mount
     const [shuffledScenarios] = useState(() =>
         [...SCENARIOS].sort(() => Math.random() - 0.5).slice(0, 5)
@@ -243,6 +252,7 @@ const LevelTwoGame: React.FC<LevelTwoGameProps> = ({ onExit }) => {
         const scenario = shuffledScenarios[currentScenarioIndex];
         const choiceData = choice === 'paper' ? scenario.paperBook : scenario.ebook;
 
+        playSound('click');
         setIsAnimating(true);
 
         if (choice === 'paper') {
@@ -276,9 +286,11 @@ const LevelTwoGame: React.FC<LevelTwoGameProps> = ({ onExit }) => {
 
         if (isCorrect) {
             setQuizzesCorrect(prev => prev + 1);
+            playSound('success');
             setFeedback({ text: quiz.explanation, type: 'synthesis' });
         } else {
             setMistakes(prev => prev + 1);
+            playSound('error');
             setFeedback({ text: `Sai rồi! ${quiz.explanation}`, type: 'paper' });
         }
 
@@ -301,6 +313,7 @@ const LevelTwoGame: React.FC<LevelTwoGameProps> = ({ onExit }) => {
                     if (prev >= 100) {
                         clearInterval(interval);
                         setTimeout(() => {
+                            playSound('success');
                             setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
                             setGamePhase('complete');
                         }, 1000);
@@ -436,7 +449,7 @@ const LevelTwoGame: React.FC<LevelTwoGameProps> = ({ onExit }) => {
                             {/* CTA Button */}
                             <div className="px-4 pb-8">
                                 <button
-                                    onClick={() => setGamePhase('scenario')}
+                                    onClick={() => { playSound('click'); setGamePhase('scenario'); }}
                                     className="group relative w-full md:w-auto px-8 md:px-12 py-4 md:py-6 bg-white text-black rounded-xl md:rounded-2xl font-black text-lg md:text-xl hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.4)] overflow-hidden animate-fadeInUp mx-auto block"
                                     style={{ animationDelay: '0.6s' }}
                                 >
@@ -452,350 +465,358 @@ const LevelTwoGame: React.FC<LevelTwoGameProps> = ({ onExit }) => {
                 )}
 
                 {/* SCENARIO PHASE với Enhanced Design */}
-                {gamePhase === 'scenario' && (
-                    <div className="h-full flex flex-col p-4 md:p-8 relative overflow-y-auto">
-                        {/* Background glow */}
-                        <div className="absolute top-1/4 left-1/4 w-32 md:w-64 h-32 md:h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-                        <div className="absolute bottom-1/4 right-1/4 w-32 md:w-64 h-32 md:h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                {
+                    gamePhase === 'scenario' && (
+                        <div className="h-full flex flex-col p-4 md:p-8 relative overflow-y-auto">
+                            {/* Background glow */}
+                            <div className="absolute top-1/4 left-1/4 w-32 md:w-64 h-32 md:h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                            <div className="absolute bottom-1/4 right-1/4 w-32 md:w-64 h-32 md:h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-                        {/* Balance Scale */}
-                        <div className="mb-4 md:mb-8 animate-fadeInUp shrink-0">
-                            <BalanceScale
-                                paperScore={paperScore}
-                                ebookScore={ebookScore}
-                                isAnimating={isAnimating}
-                            />
-                        </div>
-
-                        {/* Progress với enhanced design */}
-                        <div className="text-center mb-6 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
-                            <div className="inline-flex items-center gap-3 glass-card px-4 py-2 rounded-full">
-                                <span className="text-xs text-slate-400 uppercase tracking-widest">Tình huống</span>
-                                <div className="flex gap-1.5">
-                                    {shuffledScenarios.map((_, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`w-2 h-2 rounded-full transition-all ${idx < currentScenarioIndex ? 'bg-primary' :
-                                                idx === currentScenarioIndex ? 'bg-accent w-4 shadow-[0_0_10px_rgba(179,235,38,0.5)]' :
-                                                    'bg-white/20'
-                                                }`}
-                                        ></div>
-                                    ))}
-                                </div>
-                                <span className="text-xs font-bold text-white">{currentScenarioIndex + 1}/{shuffledScenarios.length}</span>
-                            </div>
-                        </div>
-
-                        {/* Scenario Card với premium design */}
-                        <div className="max-w-2xl mx-auto w-full animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-                            <div className="card-premium rounded-2xl p-8 mb-6 relative overflow-hidden">
-                                {/* Decorative gradient */}
-                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-white/20 to-cyan-500"></div>
-
-                                <h2 className="text-2xl font-bold text-white mb-3 flex items-center gap-3">
-                                    <span className="material-symbols-outlined text-primary">help_outline</span>
-                                    {shuffledScenarios[currentScenarioIndex].title}
-                                </h2>
-                                <p className="text-slate-300 text-lg leading-relaxed">
-                                    {shuffledScenarios[currentScenarioIndex].description}
-                                </p>
+                            {/* Balance Scale */}
+                            <div className="mb-4 md:mb-8 animate-fadeInUp shrink-0">
+                                <BalanceScale
+                                    paperScore={paperScore}
+                                    ebookScore={ebookScore}
+                                    isAnimating={isAnimating}
+                                />
                             </div>
 
-                            {/* Feedback display với enhanced animation */}
-                            {feedback && (
-                                <div className={`mb-6 p-5 rounded-xl border animate-scale-in-bounce shadow-lg ${feedback.type === 'paper' ? 'bg-amber-900/30 border-amber-500/50 text-amber-200 shadow-amber-500/10' :
-                                    feedback.type === 'ebook' ? 'bg-cyan-900/30 border-cyan-500/50 text-cyan-200 shadow-cyan-500/10' :
-                                        'bg-accent/20 border-accent/50 text-accent shadow-accent/10'
-                                    }`}>
-                                    <div className="flex items-start gap-4">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${feedback.type === 'paper' ? 'bg-amber-500/20' :
-                                            feedback.type === 'ebook' ? 'bg-cyan-500/20' :
-                                                'bg-accent/20'
-                                            }`}>
-                                            <span className="material-symbols-outlined text-xl">
-                                                {feedback.type === 'paper' ? 'menu_book' : feedback.type === 'ebook' ? 'tablet' : 'lightbulb'}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm leading-relaxed">{feedback.text}</p>
+                            {/* Progress với enhanced design */}
+                            <div className="text-center mb-6 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
+                                <div className="inline-flex items-center gap-3 glass-card px-4 py-2 rounded-full">
+                                    <span className="text-xs text-slate-400 uppercase tracking-widest">Tình huống</span>
+                                    <div className="flex gap-1.5">
+                                        {shuffledScenarios.map((_, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`w-2 h-2 rounded-full transition-all ${idx < currentScenarioIndex ? 'bg-primary' :
+                                                    idx === currentScenarioIndex ? 'bg-accent w-4 shadow-[0_0_10px_rgba(179,235,38,0.5)]' :
+                                                        'bg-white/20'
+                                                    }`}
+                                            ></div>
+                                        ))}
                                     </div>
-                                </div>
-                            )}
-
-                            {/* Choice Buttons with Images */}
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <button
-                                    onClick={() => handleScenarioChoice('paper')}
-                                    disabled={!!feedback}
-                                    className={`group relative h-[280px] rounded-3xl overflow-hidden border-2 transition-all duration-500 flex flex-col items-center justify-end p-6 shadow-2xl
-                                        ${feedback ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] hover:-translate-y-2'}
-                                        ${feedback?.type === 'paper' ? 'border-amber-500 ring-4 ring-amber-500/20' : 'border-white/10 hover:border-amber-500/50 hover:shadow-amber-500/20'}
-                                    `}
-                                >
-                                    {/* Image BG */}
-                                    <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
-                                        <img src={IMAGES.PAPER_BOOK} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="Paper Book" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                                    </div>
-
-                                    <div className="relative z-10 text-center w-full">
-                                        <div className="w-12 h-12 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg">
-                                            <span className="material-symbols-outlined text-2xl">menu_book</span>
-                                        </div>
-                                        <div className="text-2xl font-bold text-white mb-1 group-hover:text-amber-300 transition-colors">Chọn Sách Giấy</div>
-                                        <div className="text-xs font-medium text-amber-200 uppercase tracking-widest bg-black/50 py-1 px-3 rounded-full inline-block backdrop-blur-sm border border-amber-500/30">Giá trị cốt lõi</div>
-                                    </div>
-                                </button>
-
-                                <button
-                                    onClick={() => handleScenarioChoice('ebook')}
-                                    disabled={!!feedback}
-                                    className={`group relative h-[280px] rounded-3xl overflow-hidden border-2 transition-all duration-500 flex flex-col items-center justify-end p-6 shadow-2xl
-                                        ${feedback ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] hover:-translate-y-2'}
-                                        ${feedback?.type === 'ebook' ? 'border-cyan-500 ring-4 ring-cyan-500/20' : 'border-white/10 hover:border-cyan-500/50 hover:shadow-cyan-500/20'}
-                                    `}
-                                >
-                                    {/* Image BG */}
-                                    <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
-                                        <img src={IMAGES.EBOOK} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="Ebook" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                                    </div>
-
-                                    <div className="relative z-10 text-center w-full">
-                                        <div className="w-12 h-12 rounded-full bg-cyan-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg">
-                                            <span className="material-symbols-outlined text-2xl">tablet_mac</span>
-                                        </div>
-                                        <div className="text-2xl font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">Chọn Ebook</div>
-                                        <div className="text-xs font-medium text-cyan-200 uppercase tracking-widest bg-black/50 py-1 px-3 rounded-full inline-block backdrop-blur-sm border border-cyan-500/30">Xu hướng mới</div>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* QUIZ PHASE */}
-                {gamePhase === 'quiz' && (
-                    <div className="h-full flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in duration-500 relative overflow-y-auto">
-                        {/* Quiz BG decorations */}
-                        <div className="absolute -left-20 top-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-                        <div className="absolute -right-20 bottom-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
-
-                        <div className="max-w-3xl w-full relative z-10 py-8">
-                            <div className="text-center mb-6 md:mb-10">
-                                <div className="inline-flex items-center gap-2 border border-primary/30 bg-primary/10 px-4 py-2 rounded-full text-primary text-xs font-bold uppercase tracking-widest mb-4">
-                                    <span className="material-symbols-outlined text-sm">quiz</span>
-                                    Kiểm tra Kiến thức
-                                </div>
-                                <h2 className="text-3xl font-bold text-white mb-2">Câu hỏi {currentQuizIndex + 1} / {shuffledQuizzes.length}</h2>
-                                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
-                                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${((currentQuizIndex + 1) / shuffledQuizzes.length) * 100}%` }}></div>
+                                    <span className="text-xs font-bold text-white">{currentScenarioIndex + 1}/{shuffledScenarios.length}</span>
                                 </div>
                             </div>
 
-                            <div className="glass-panel p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-2xl relative overflow-hidden border border-white/10">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+                            {/* Scenario Card với premium design */}
+                            <div className="max-w-2xl mx-auto w-full animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+                                <div className="card-premium rounded-2xl p-8 mb-6 relative overflow-hidden">
+                                    {/* Decorative gradient */}
+                                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-white/20 to-cyan-500"></div>
 
-                                <h3 className="text-2xl font-bold text-white mb-8 leading-relaxed text-center">
-                                    {shuffledQuizzes[currentQuizIndex].question}
-                                </h3>
-
-                                <div className="grid gap-4">
-                                    {shuffledQuizzes[currentQuizIndex].options.map((option, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => handleQuizAnswer(idx)}
-                                            disabled={!!feedback}
-                                            className={`w-full text-left p-6 rounded-2xl border-2 transition-all flex items-center gap-5 group relative overflow-hidden
-                                                ${feedback
-                                                    ? 'opacity-60 cursor-not-allowed border-white/5 bg-white/5'
-                                                    : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1'
-                                                }
-                                            `}
-                                        >
-                                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all
-                                                ${feedback ? 'border-white/20 text-white/50' : 'border-white/30 text-white group-hover:bg-primary group-hover:text-black group-hover:border-primary'}
-                                            `}>
-                                                {String.fromCharCode(65 + idx)}
-                                            </div>
-                                            <span className="text-lg text-slate-200 group-hover:text-white transition-colors font-medium">{option}</span>
-
-                                            {/* Hover Gradient */}
-                                            {!feedback && <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Feedback */}
-                                {feedback && (
-                                    <div className={`mt-8 p-6 rounded-2xl border-l-4 animate-in slide-in-from-bottom duration-300 shadow-xl backdrop-blur-md ${feedback.type === 'synthesis' ? 'bg-accent/10 border-accent text-white' : 'bg-red-500/10 border-red-500 text-white'}`}>
-                                        <div className="flex items-start gap-4">
-                                            <div className={`p-2 rounded-full ${feedback.type === 'synthesis' ? 'bg-accent/20 text-accent' : 'bg-red-500/20 text-red-500'}`}>
-                                                <span className="material-symbols-outlined text-2xl">
-                                                    {feedback.type === 'synthesis' ? 'check_circle' : 'error'}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h4 className={`font-bold text-lg mb-1 ${feedback.type === 'synthesis' ? 'text-accent' : 'text-red-400'}`}>
-                                                    {feedback.type === 'synthesis' ? 'Chính xác!' : 'Chưa đúng!'}
-                                                </h4>
-                                                <p className="text-slate-300 leading-relaxed">{feedback.text}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* SYNTHESIS PHASE */}
-                {gamePhase === 'synthesis' && (
-                    <div className="h-full flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
-                        <div className="max-w-2xl w-full text-center">
-                            <div className="inline-flex items-center gap-2 border border-accent/30 bg-accent/10 px-4 py-2 rounded-full text-accent text-xs font-bold uppercase tracking-widest mb-8">
-                                <span className="material-symbols-outlined text-sm animate-spin">autorenew</span>
-                                Quá trình Tổng hợp Biện chứng
-                            </div>
-
-                            <h2 className="text-3xl font-bold mb-8">Từ Đấu tranh đến Thống nhất</h2>
-
-                            {/* Synthesis Animation with Images */}
-                            <div className="relative h-64 w-full flex items-center justify-center mb-10 overflow-hidden">
-                                <div
-                                    className="absolute left-1/4 w-32 h-32 rounded-full border-4 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.3)] overflow-hidden z-10"
-                                    style={{
-                                        transform: `translateX(${synthesisProgress}px) scale(${1 - synthesisProgress / 200}) rotate(${synthesisProgress * 2}deg)`,
-                                        opacity: 1 - synthesisProgress / 150
-                                    }}
-                                >
-                                    <img src={IMAGES.PAPER_BOOK} className="w-full h-full object-cover" alt="Thesis" />
-                                </div>
-
-                                <div
-                                    className="absolute right-1/4 w-32 h-32 rounded-full border-4 border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.3)] overflow-hidden z-10"
-                                    style={{
-                                        transform: `translateX(${-synthesisProgress}px) scale(${1 - synthesisProgress / 200}) rotate(${-synthesisProgress * 2}deg)`,
-                                        opacity: 1 - synthesisProgress / 150
-                                    }}
-                                >
-                                    <img src={IMAGES.EBOOK} className="w-full h-full object-cover" alt="Antithesis" />
-                                </div>
-
-                                {/* Result */}
-                                <div
-                                    className="absolute w-48 h-48 rounded-full border-4 border-white/50 flex items-center justify-center shadow-[0_0_100px_rgba(179,235,38,0.6)] transition-all duration-500 z-20 overflow-hidden"
-                                    style={{
-                                        opacity: synthesisProgress / 100,
-                                        transform: `scale(${0.5 + synthesisProgress / 200})`
-                                    }}
-                                >
-                                    <img src={IMAGES.SYNTHESIS} className="w-full h-full object-cover" alt="Synthesis" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-accent/80 to-transparent flex items-end justify-center pb-4">
-                                        <span className="text-white font-black text-xl uppercase tracking-widest drop-shadow-md">Thống Nhất</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Progress Bar */}
-                            <div className="h-4 bg-white/10 rounded-full overflow-hidden mb-6">
-                                <div
-                                    className="h-full bg-gradient-to-r from-amber-500 via-accent to-cyan-500 transition-all duration-100"
-                                    style={{ width: `${synthesisProgress}%` }}
-                                ></div>
-                            </div>
-
-                            <p className="text-slate-400">
-                                {synthesisProgress < 50 && "Hai mặt đối lập đang xung đột..."}
-                                {synthesisProgress >= 50 && synthesisProgress < 80 && "Quá trình phủ định biện chứng đang diễn ra..."}
-                                {synthesisProgress >= 80 && synthesisProgress < 100 && "Sự thống nhất mới đang hình thành..."}
-                                {synthesisProgress >= 100 && "Trải nghiệm đọc hiện đại đã ra đời!"}
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* COMPLETE PHASE */}
-                {gamePhase === 'complete' && (
-                    <div className="h-full flex items-center justify-center p-8 relative overflow-hidden bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1600')] bg-cover bg-center">
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-
-                        <div className="glass-panel max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl animate-scale-in-bounce flex flex-col md:flex-row relative z-10 border border-white/10">
-
-                            {/* Left Side: Result Visual */}
-                            <div className="relative md:w-5/12 bg-gradient-to-br from-slate-900/90 to-black/90 p-10 flex flex-col items-center justify-center text-center overflow-hidden border-r border-white/10">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/20 via-transparent to-transparent"></div>
-
-                                <div className="relative w-40 h-40 mb-6">
-                                    <div className="absolute inset-0 rounded-full border-4 border-accent animate-spin-slow opacity-50"></div>
-                                    <div className="absolute inset-4 rounded-full border-4 border-dashed border-primary animate-reverse-spin opacity-50"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-8xl text-accent drop-shadow-[0_0_30px_rgba(179,235,38,0.6)]">workspace_premium</span>
-                                    </div>
-                                </div>
-
-                                <div className={`text-6xl font-black ${getRank().color} mb-2 tracking-tighter drop-shadow-xl`}>{getRank().rank}</div>
-                                <div className="text-sm uppercase tracking-widest text-slate-400 font-bold mb-2">Đánh giá năng lực</div>
-                                <div className={`text-xl font-bold ${getRank().color}`}>{getRank().title}</div>
-                            </div>
-
-                            {/* Right Side: Stats & Summary */}
-                            <div className="flex-1 p-8 md:p-10 bg-slate-900/60 backdrop-blur-md flex flex-col">
-                                <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                                    <span className="material-symbols-outlined text-accent text-4xl">check_circle</span>
-                                    Thí Nghiệm Hoàn Tất
-                                </h2>
-                                <p className="text-slate-400 mb-8 text-lg">
-                                    Bạn đã nắm vững quy luật <span className="text-white font-bold">Thống nhất và Đấu tranh</span>.
-                                </p>
-
-                                {/* Stats Grid */}
-                                <div className="grid grid-cols-3 gap-4 mb-8">
-                                    <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 mx-auto w-full">
-                                        <div className="text-slate-400 text-xs font-bold uppercase mb-1">Quiz</div>
-                                        <div className="text-2xl font-black text-accent">{quizzesCorrect}/{shuffledQuizzes.length}</div>
-                                    </div>
-                                    <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 mx-auto w-full">
-                                        <div className="text-slate-400 text-xs font-bold uppercase mb-1">Thời gian</div>
-                                        <div className="text-2xl font-black text-white">{Math.floor(elapsedTime / 60)}:{elapsedTime % 60 < 10 ? '0' : ''}{elapsedTime % 60}</div>
-                                    </div>
-                                    <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 mx-auto w-full">
-                                        <div className="text-slate-400 text-xs font-bold uppercase mb-1">Sai sót</div>
-                                        <div className={`text-2xl font-black ${mistakes === 0 ? 'text-accent' : 'text-red-400'}`}>{mistakes}</div>
-                                    </div>
-                                </div>
-
-                                {/* Lesson Card */}
-                                <div className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-2xl p-6 border border-accent/20 mb-8 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                                        <span className="material-symbols-outlined text-6xl text-white">school</span>
-                                    </div>
-                                    <h4 className="font-bold text-accent mb-2 uppercase text-xs tracking-widest">Bài học rút ra</h4>
-                                    <p className="text-slate-200 text-sm leading-relaxed">
-                                        Sách giấy và Ebook không loại trừ nhau mà bổ sung cho nhau. Sự đấu tranh giữa chúng tạo ra quá trình phát triển, dẫn đến những hình thức trải nghiệm tri thức mới ưu việt hơn.
+                                    <h2 className="text-2xl font-bold text-white mb-3 flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-primary">help_outline</span>
+                                        {shuffledScenarios[currentScenarioIndex].title}
+                                    </h2>
+                                    <p className="text-slate-300 text-lg leading-relaxed">
+                                        {shuffledScenarios[currentScenarioIndex].description}
                                     </p>
                                 </div>
 
-                                <div className="mt-auto flex gap-4">
+                                {/* Feedback display với enhanced animation */}
+                                {feedback && (
+                                    <div className={`mb-6 p-5 rounded-xl border animate-scale-in-bounce shadow-lg ${feedback.type === 'paper' ? 'bg-amber-900/30 border-amber-500/50 text-amber-200 shadow-amber-500/10' :
+                                        feedback.type === 'ebook' ? 'bg-cyan-900/30 border-cyan-500/50 text-cyan-200 shadow-cyan-500/10' :
+                                            'bg-accent/20 border-accent/50 text-accent shadow-accent/10'
+                                        }`}>
+                                        <div className="flex items-start gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${feedback.type === 'paper' ? 'bg-amber-500/20' :
+                                                feedback.type === 'ebook' ? 'bg-cyan-500/20' :
+                                                    'bg-accent/20'
+                                                }`}>
+                                                <span className="material-symbols-outlined text-xl">
+                                                    {feedback.type === 'paper' ? 'menu_book' : feedback.type === 'ebook' ? 'tablet' : 'lightbulb'}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm leading-relaxed">{feedback.text}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Choice Buttons with Images */}
+                                <div className="grid md:grid-cols-2 gap-6">
                                     <button
-                                        onClick={onExit}
-                                        className="flex-1 py-4 rounded-xl border border-white/20 hover:bg-white/10 text-white font-bold transition-all"
+                                        onClick={() => handleScenarioChoice('paper')}
+                                        disabled={!!feedback}
+                                        className={`group relative h-[280px] rounded-3xl overflow-hidden border-2 transition-all duration-500 flex flex-col items-center justify-end p-6 shadow-2xl
+                                        ${feedback ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] hover:-translate-y-2'}
+                                        ${feedback?.type === 'paper' ? 'border-amber-500 ring-4 ring-amber-500/20' : 'border-white/10 hover:border-amber-500/50 hover:shadow-amber-500/20'}
+                                    `}
                                     >
-                                        Về Menu
+                                        {/* Image BG */}
+                                        <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
+                                            <img src={IMAGES.PAPER_BOOK} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="Paper Book" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                                        </div>
+
+                                        <div className="relative z-10 text-center w-full">
+                                            <div className="w-12 h-12 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg">
+                                                <span className="material-symbols-outlined text-2xl">menu_book</span>
+                                            </div>
+                                            <div className="text-2xl font-bold text-white mb-1 group-hover:text-amber-300 transition-colors">Chọn Sách Giấy</div>
+                                            <div className="text-xs font-medium text-amber-200 uppercase tracking-widest bg-black/50 py-1 px-3 rounded-full inline-block backdrop-blur-sm border border-amber-500/30">Giá trị cốt lõi</div>
+                                        </div>
                                     </button>
+
                                     <button
-                                        onClick={() => window.location.reload()}
-                                        className="flex-1 py-4 rounded-xl bg-accent text-black font-bold hover:shadow-[0_0_30px_rgba(179,235,38,0.4)] transition-all hover:-translate-y-1"
+                                        onClick={() => handleScenarioChoice('ebook')}
+                                        disabled={!!feedback}
+                                        className={`group relative h-[280px] rounded-3xl overflow-hidden border-2 transition-all duration-500 flex flex-col items-center justify-end p-6 shadow-2xl
+                                        ${feedback ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] hover:-translate-y-2'}
+                                        ${feedback?.type === 'ebook' ? 'border-cyan-500 ring-4 ring-cyan-500/20' : 'border-white/10 hover:border-cyan-500/50 hover:shadow-cyan-500/20'}
+                                    `}
                                     >
-                                        Chơi lại
+                                        {/* Image BG */}
+                                        <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
+                                            <img src={IMAGES.EBOOK} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="Ebook" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                                        </div>
+
+                                        <div className="relative z-10 text-center w-full">
+                                            <div className="w-12 h-12 rounded-full bg-cyan-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg">
+                                                <span className="material-symbols-outlined text-2xl">tablet_mac</span>
+                                            </div>
+                                            <div className="text-2xl font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">Chọn Ebook</div>
+                                            <div className="text-xs font-medium text-cyan-200 uppercase tracking-widest bg-black/50 py-1 px-3 rounded-full inline-block backdrop-blur-sm border border-cyan-500/30">Xu hướng mới</div>
+                                        </div>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
-            </div>
-        </div>
+                {/* QUIZ PHASE */}
+                {
+                    gamePhase === 'quiz' && (
+                        <div className="h-full flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in duration-500 relative overflow-y-auto">
+                            {/* Quiz BG decorations */}
+                            <div className="absolute -left-20 top-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+                            <div className="absolute -right-20 bottom-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                            <div className="max-w-3xl w-full relative z-10 py-8">
+                                <div className="text-center mb-6 md:mb-10">
+                                    <div className="inline-flex items-center gap-2 border border-primary/30 bg-primary/10 px-4 py-2 rounded-full text-primary text-xs font-bold uppercase tracking-widest mb-4">
+                                        <span className="material-symbols-outlined text-sm">quiz</span>
+                                        Kiểm tra Kiến thức
+                                    </div>
+                                    <h2 className="text-3xl font-bold text-white mb-2">Câu hỏi {currentQuizIndex + 1} / {shuffledQuizzes.length}</h2>
+                                    <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
+                                        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${((currentQuizIndex + 1) / shuffledQuizzes.length) * 100}%` }}></div>
+                                    </div>
+                                </div>
+
+                                <div className="glass-panel p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-2xl relative overflow-hidden border border-white/10">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+
+                                    <h3 className="text-2xl font-bold text-white mb-8 leading-relaxed text-center">
+                                        {shuffledQuizzes[currentQuizIndex].question}
+                                    </h3>
+
+                                    <div className="grid gap-4">
+                                        {shuffledQuizzes[currentQuizIndex].options.map((option, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleQuizAnswer(idx)}
+                                                disabled={!!feedback}
+                                                className={`w-full text-left p-6 rounded-2xl border-2 transition-all flex items-center gap-5 group relative overflow-hidden
+                                                ${feedback
+                                                        ? 'opacity-60 cursor-not-allowed border-white/5 bg-white/5'
+                                                        : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1'
+                                                    }
+                                            `}
+                                            >
+                                                <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all
+                                                ${feedback ? 'border-white/20 text-white/50' : 'border-white/30 text-white group-hover:bg-primary group-hover:text-black group-hover:border-primary'}
+                                            `}>
+                                                    {String.fromCharCode(65 + idx)}
+                                                </div>
+                                                <span className="text-lg text-slate-200 group-hover:text-white transition-colors font-medium">{option}</span>
+
+                                                {/* Hover Gradient */}
+                                                {!feedback && <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Feedback */}
+                                    {feedback && (
+                                        <div className={`mt-8 p-6 rounded-2xl border-l-4 animate-in slide-in-from-bottom duration-300 shadow-xl backdrop-blur-md ${feedback.type === 'synthesis' ? 'bg-accent/10 border-accent text-white' : 'bg-red-500/10 border-red-500 text-white'}`}>
+                                            <div className="flex items-start gap-4">
+                                                <div className={`p-2 rounded-full ${feedback.type === 'synthesis' ? 'bg-accent/20 text-accent' : 'bg-red-500/20 text-red-500'}`}>
+                                                    <span className="material-symbols-outlined text-2xl">
+                                                        {feedback.type === 'synthesis' ? 'check_circle' : 'error'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h4 className={`font-bold text-lg mb-1 ${feedback.type === 'synthesis' ? 'text-accent' : 'text-red-400'}`}>
+                                                        {feedback.type === 'synthesis' ? 'Chính xác!' : 'Chưa đúng!'}
+                                                    </h4>
+                                                    <p className="text-slate-300 leading-relaxed">{feedback.text}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* SYNTHESIS PHASE */}
+                {
+                    gamePhase === 'synthesis' && (
+                        <div className="h-full flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
+                            <div className="max-w-2xl w-full text-center">
+                                <div className="inline-flex items-center gap-2 border border-accent/30 bg-accent/10 px-4 py-2 rounded-full text-accent text-xs font-bold uppercase tracking-widest mb-8">
+                                    <span className="material-symbols-outlined text-sm animate-spin">autorenew</span>
+                                    Quá trình Tổng hợp Biện chứng
+                                </div>
+
+                                <h2 className="text-3xl font-bold mb-8">Từ Đấu tranh đến Thống nhất</h2>
+
+                                {/* Synthesis Animation with Images */}
+                                <div className="relative h-64 w-full flex items-center justify-center mb-10 overflow-hidden">
+                                    <div
+                                        className="absolute left-1/4 w-32 h-32 rounded-full border-4 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.3)] overflow-hidden z-10"
+                                        style={{
+                                            transform: `translateX(${synthesisProgress}px) scale(${1 - synthesisProgress / 200}) rotate(${synthesisProgress * 2}deg)`,
+                                            opacity: 1 - synthesisProgress / 150
+                                        }}
+                                    >
+                                        <img src={IMAGES.PAPER_BOOK} className="w-full h-full object-cover" alt="Thesis" />
+                                    </div>
+
+                                    <div
+                                        className="absolute right-1/4 w-32 h-32 rounded-full border-4 border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.3)] overflow-hidden z-10"
+                                        style={{
+                                            transform: `translateX(${-synthesisProgress}px) scale(${1 - synthesisProgress / 200}) rotate(${-synthesisProgress * 2}deg)`,
+                                            opacity: 1 - synthesisProgress / 150
+                                        }}
+                                    >
+                                        <img src={IMAGES.EBOOK} className="w-full h-full object-cover" alt="Antithesis" />
+                                    </div>
+
+                                    {/* Result */}
+                                    <div
+                                        className="absolute w-48 h-48 rounded-full border-4 border-white/50 flex items-center justify-center shadow-[0_0_100px_rgba(179,235,38,0.6)] transition-all duration-500 z-20 overflow-hidden"
+                                        style={{
+                                            opacity: synthesisProgress / 100,
+                                            transform: `scale(${0.5 + synthesisProgress / 200})`
+                                        }}
+                                    >
+                                        <img src={IMAGES.SYNTHESIS} className="w-full h-full object-cover" alt="Synthesis" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-accent/80 to-transparent flex items-end justify-center pb-4">
+                                            <span className="text-white font-black text-xl uppercase tracking-widest drop-shadow-md">Thống Nhất</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="h-4 bg-white/10 rounded-full overflow-hidden mb-6">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-amber-500 via-accent to-cyan-500 transition-all duration-100"
+                                        style={{ width: `${synthesisProgress}%` }}
+                                    ></div>
+                                </div>
+
+                                <p className="text-slate-400">
+                                    {synthesisProgress < 50 && "Hai mặt đối lập đang xung đột..."}
+                                    {synthesisProgress >= 50 && synthesisProgress < 80 && "Quá trình phủ định biện chứng đang diễn ra..."}
+                                    {synthesisProgress >= 80 && synthesisProgress < 100 && "Sự thống nhất mới đang hình thành..."}
+                                    {synthesisProgress >= 100 && "Trải nghiệm đọc hiện đại đã ra đời!"}
+                                </p>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* COMPLETE PHASE */}
+                {
+                    gamePhase === 'complete' && (
+                        <div className="h-full flex items-center justify-center p-8 relative overflow-hidden bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1600')] bg-cover bg-center">
+                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+
+                            <div className="glass-panel max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl animate-scale-in-bounce flex flex-col md:flex-row relative z-10 border border-white/10">
+
+                                {/* Left Side: Result Visual */}
+                                <div className="relative md:w-5/12 bg-gradient-to-br from-slate-900/90 to-black/90 p-10 flex flex-col items-center justify-center text-center overflow-hidden border-r border-white/10">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/20 via-transparent to-transparent"></div>
+
+                                    <div className="relative w-40 h-40 mb-6">
+                                        <div className="absolute inset-0 rounded-full border-4 border-accent animate-spin-slow opacity-50"></div>
+                                        <div className="absolute inset-4 rounded-full border-4 border-dashed border-primary animate-reverse-spin opacity-50"></div>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-8xl text-accent drop-shadow-[0_0_30px_rgba(179,235,38,0.6)]">workspace_premium</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={`text-6xl font-black ${getRank().color} mb-2 tracking-tighter drop-shadow-xl`}>{getRank().rank}</div>
+                                    <div className="text-sm uppercase tracking-widest text-slate-400 font-bold mb-2">Đánh giá năng lực</div>
+                                    <div className={`text-xl font-bold ${getRank().color}`}>{getRank().title}</div>
+                                </div>
+
+                                {/* Right Side: Stats & Summary */}
+                                <div className="flex-1 p-8 md:p-10 bg-slate-900/60 backdrop-blur-md flex flex-col">
+                                    <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-accent text-4xl">check_circle</span>
+                                        Thí Nghiệm Hoàn Tất
+                                    </h2>
+                                    <p className="text-slate-400 mb-8 text-lg">
+                                        Bạn đã nắm vững quy luật <span className="text-white font-bold">Thống nhất và Đấu tranh</span>.
+                                    </p>
+
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-3 gap-4 mb-8">
+                                        <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 mx-auto w-full">
+                                            <div className="text-slate-400 text-xs font-bold uppercase mb-1">Quiz</div>
+                                            <div className="text-2xl font-black text-accent">{quizzesCorrect}/{shuffledQuizzes.length}</div>
+                                        </div>
+                                        <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 mx-auto w-full">
+                                            <div className="text-slate-400 text-xs font-bold uppercase mb-1">Thời gian</div>
+                                            <div className="text-2xl font-black text-white">{Math.floor(elapsedTime / 60)}:{elapsedTime % 60 < 10 ? '0' : ''}{elapsedTime % 60}</div>
+                                        </div>
+                                        <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 mx-auto w-full">
+                                            <div className="text-slate-400 text-xs font-bold uppercase mb-1">Sai sót</div>
+                                            <div className={`text-2xl font-black ${mistakes === 0 ? 'text-accent' : 'text-red-400'}`}>{mistakes}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Lesson Card */}
+                                    <div className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-2xl p-6 border border-accent/20 mb-8 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                                            <span className="material-symbols-outlined text-6xl text-white">school</span>
+                                        </div>
+                                        <h4 className="font-bold text-accent mb-2 uppercase text-xs tracking-widest">Bài học rút ra</h4>
+                                        <p className="text-slate-200 text-sm leading-relaxed">
+                                            Sách giấy và Ebook không loại trừ nhau mà bổ sung cho nhau. Sự đấu tranh giữa chúng tạo ra quá trình phát triển, dẫn đến những hình thức trải nghiệm tri thức mới ưu việt hơn.
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-auto flex gap-4">
+                                        <button
+                                            onClick={() => { playSound('click'); onExit(); }}
+                                            className="flex-1 py-4 rounded-xl border border-white/20 hover:bg-white/10 text-white font-bold transition-all"
+                                        >
+                                            Về Menu
+                                        </button>
+                                        <button
+                                            onClick={() => { playSound('click'); window.location.reload(); }}
+                                            className="flex-1 py-4 rounded-xl bg-accent text-black font-bold hover:shadow-[0_0_30px_rgba(179,235,38,0.4)] transition-all hover:-translate-y-1"
+                                        >
+                                            Chơi lại
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+            </div >
+        </div >
     );
 };
 
