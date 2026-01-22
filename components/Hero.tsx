@@ -18,8 +18,8 @@ const Hero: React.FC = () => {
           <span className="text-xs font-bold tracking-widest uppercase text-slate-300">Nguyên lý về sự Phát triển</span>
         </div>
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-[-0.02em] text-white mb-8 leading-[1.1] animate-in zoom-in-95 duration-700 delay-100">
-          Sự vận động là <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-accent drop-shadow-[0_0_15px_rgba(31,173,150,0.3)]">khuynh hướng đi lên</span> <br className="md:hidden" /> không ngừng
+          Thay đổi là <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-accent drop-shadow-[0_0_15px_rgba(31,173,150,0.3)]">hằng số đi lên của </span> <br className="md:hidden" /> đời sống
         </h1>
         <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed font-light animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
           Khám phá <strong>Nguyên Lý Về Sự Phát Triển</strong> và <strong>Ba Quy Luật</strong> cốt lõi điều khiển sự vận động của vũ trụ. Hiểu rõ khuynh hướng đi lên theo đường xoắn ốc của vạn vật.
